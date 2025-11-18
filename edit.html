@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Редактор Портфолио</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <div class="sidebar">
+        <img id="avatar" src="teacher.jpg" alt="Фото учителя">
+        <a href="index.html">Главная</a>
+        <a href="#uploadSection">Загрузка файлов</a>
+    </div>
+
+    <div class="main">
+        <section id="uploadSection">
+            <h2>Загрузка файлов</h2>
+
+            <h3>Сменить аватарку</h3>
+            <input type="file" id="avatarInput" accept="image/*">
+
+            <!-- Разделы с Drag & Drop -->
+            <script>
+            const sections = [
+                {id:'section1', title:'Педагогтың кәсіби жетістіктері'},
+                {id:'section2', title:'Оқушының жетістіктері'},
+                {id:'section3', title:'Тәжірибе тарату'},
+                {id:'section4', title:'Семинарда сөз сөйлеу'},
+                {id:'section5', title:'Шығармашылық топта болу'}
+            ];
+
+            sections.forEach(sec=>{
+                document.write(`<h3>${sec.title}</h3>
+                <div class="dragArea" id="${sec.id}Drag">Перетащите файл сюда или выберите</div>
+                <input type="file" id="${sec.id}Input">
+                <div id="${sec.id}Container"></div>`);
+            });
+            </script>
+        </section>
+    </div>
+</div>
+
+<script>
+function addFile(section, fileData, fileName, fileType){
+    let files = JSON.parse(localStorage.getItem(section)) || [];
+    files.push({name:fileName, data:fileData, type:fileType});
+    localStorage.setItem(section, JSON.stringify(files));
+    loadFiles(section);
+}
+
+function loadFiles(section){
+    let container = document.getElementById(section+'Container');
+    container.innerHTML = '';
+    let files = JSON.parse(localStorage.getItem(section)) || [];
+    files.forEach((file,index)=>{
+        let div = document.createElement('div');
+        div.className='fileCard';
+
+        // Поле для редактирования имени
+        let nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.value = file.name;
+        nameInput.style.flex = '1';
+        nameInput.style.marginRight = '10px';
+        nameInput.addEventListener('change', ()=>{
+            files[index].name = nameInput.value;
+            localStorage.setItem(section, JSON.stringify(files));
+            loadFiles(section);
+        });
+
+        let fileLink = document.createElement('a');
+        fileLink.href = file.data;
+        fileLink.download = file.name;
+        fileLink.textContent = 'Скачать';
+
+        let deleteBtn = document.createElement('button');
+        deleteBtn.className = 'deleteBtn';
+        deleteBtn.textContent = 'Удалить';
+        deleteBtn.onclick = ()=>{ 
+            files.splice(index,1);
+            localStorage.setItem(section,JSON.stringify(files));
+            loadFiles(section);
+        };
+
+        div.appendChild(nameInput);
+        div.appendChild(fileLink);
+        div.appendChild(deleteBtn);
+
+        container.appendChild(div);
+    });
+}
+
+// Смена аватарки
+document.getElementById('avatarInput').addEventListener('change',function(){
+    const file=this.files[0];
+    if(!file) return;
+    const reader=new FileReader();
+    reader.onload=function(e){
+        document.getElementById('avatar').src=e.target.result;
+        localStorage.setItem('avatar', e.target.result);
+    }
+    reader.readAsDataURL(file);
+});
+
+// Drag & Drop и выбор файлов
+['section1','section2','section3','section4','section5'].forEach(sec=>{
+    let dragArea=document.getElementById(sec+'Drag');
+    let input=document.getElementById(sec+'Input');
+
+    dragArea.addEventListener('click',()=>input.click());
+
+    input.addEventListener('change',()=>{
+        let file=input.files[0];
+        if(file){
+            const reader=new FileReader();
+            reader.onload=(e)=>addFile(sec,e.target.result,file.name,file.type);
+            reader.readAsDataURL(file);
+        }
+        input.value='';
+    });
+
+    dragArea.addEventListener('dragover',(e)=>{
+        e.preventDefault();
+        dragArea.classList.add('dragover');
+    });
+
+    dragArea.addEventListener('dragleave',(e)=>{
+        dragArea.classList.remove('dragover');
+    });
+
+    dragArea.addEventListener('drop',(e)=>{
+        e.preventDefault();
+        dragArea.classList.remove('dragover');
+        let file=e.dataTransfer.files[0];
+        if(file){
+            const reader=new FileReader();
+            reader.onload=(ev)=>addFile(sec,ev.target.result,file.name,file.type);
+            reader.readAsDataURL(file);
+        }
+    });
+
+    loadFiles(sec);
+});
+</script>
+</body>
+</html>

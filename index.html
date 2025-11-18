@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Портфолио Учителя</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.main section {
+    display: none; /* скрываем все разделы */
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="sidebar">
+        <img id="avatar" src="teacher.jpg" alt="Фото учителя">
+        <a href="#" onclick="showSection('section1')">Педагогтың кәсіби жетістіктері</a>
+        <a href="#" onclick="showSection('section2')">Оқушының жетістіктері</a>
+        <a href="#" onclick="showSection('section3')">Тәжірибе тарату</a>
+        <a href="#" onclick="showSection('section4')">Семинарда сөз сөйлеу</a>
+        <a href="#" onclick="showSection('section5')">Шығармашылық топта болу</a>
+        <a href="edit.html">Редактировать</a>
+    </div>
+
+    <div class="main">
+        <section id="section1">
+            <h2>Педагогтың кәсіби жетістіктері</h2>
+            <div id="section1Container"></div>
+        </section>
+
+        <section id="section2">
+            <h2>Оқушының жетістіктері</h2>
+            <div id="section2Container"></div>
+        </section>
+
+        <section id="section3">
+            <h2>Тәжірибе тарату</h2>
+            <div id="section3Container"></div>
+        </section>
+
+        <section id="section4">
+            <h2>Семинарда сөз сөйлеу</h2>
+            <div id="section4Container"></div>
+        </section>
+
+        <section id="section5">
+            <h2>Шығармашылық топта болу</h2>
+            <div id="section5Container"></div>
+        </section>
+    </div>
+</div>
+
+<script>
+function getIcon(type){
+    if(type.includes('pdf')) return '📄';
+    if(type.includes('image')) return '🖼';
+    return '📁';
+}
+
+// Функция отображения только выбранного раздела
+function showSection(sectionId){
+    const sections = ['section1','section2','section3','section4','section5'];
+    sections.forEach(id => {
+        document.getElementById(id).style.display = (id === sectionId) ? 'block' : 'none';
+    });
+}
+
+// Загрузка файлов для каждого раздела
+function loadFiles(section) {
+    let container = document.getElementById(section + 'Container');
+    container.innerHTML = '';
+    let files = JSON.parse(localStorage.getItem(section)) || [];
+    files.forEach(file => {
+        let div = document.createElement('div');
+        div.className = 'fileCard';
+        if(file.type.includes('image')){
+            div.innerHTML = `<img src="${file.data}"><span>${file.name}</span>
+                             <a href="${file.data}" download="${file.name}">Скачать</a>`;
+        } else {
+            div.innerHTML = `<span>${getIcon(file.type)} ${file.name}</span>
+                             <a href="${file.data}" download="${file.name}">Скачать</a>`;
+        }
+        container.appendChild(div);
+    });
+}
+
+// Инициализация
+function init(){
+    ['section1','section2','section3','section4','section5'].forEach(loadFiles);
+    let avatar = localStorage.getItem('avatar');
+    if(avatar) document.getElementById('avatar').src = avatar;
+
+    // показываем первый раздел по умолчанию
+    showSection('section1');
+}
+
+init();
+</script>
+</body>
+</html>
